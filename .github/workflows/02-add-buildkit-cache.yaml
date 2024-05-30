@@ -20,5 +20,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: justsanti/docker-ci-automation:02
           # New cache
-        cache-from: type=gha
-        cache-to: type=gha, mode=max
+          cache-from: type=gha
+          cache-to: type=gha, mode=max
