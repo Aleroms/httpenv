@@ -1,0 +1,49 @@
+name: 02 Build with BuildKit Cache
+
+on:
+  push:
+    branches:
+      - main
+    pull_request:
+
+jobs:
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-latest
+    steps:
+      # Adds QEMU which emulate sys proccessors to support diff kinds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      # Adds caching with Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Adding Metadata
+      - name: Docker meta
+        id: docker_meta
+        uses: docker/metadata-action@v3
+        with:
+          images: bretfisher/allhands22
+          flavor: |
+            latest=false
+          tags: |
+            type=raw, value=04
+            type=raw, value=latest, enable=${{ endsWith(github.ref, github.event.repository }}
+            type=ref, event=pr
+            type=ref, event=branch
+            type=semver, pattern={{version}}
+      - name: Docker build
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          # New cache
+          cache-from: type=gha
+          cache-to: type=gha, mode=max
+          # Adds QEMU for specific processors
+          platforms: linux/amd64, linux/arm64, linux/arm/v7
