@@ -1,4 +1,4 @@
-name: 02 Build with BuildKit Cache
+name: 04 Adding Metadata tags to Image
 
 on:
   push:
